@@ -55,6 +55,8 @@ enum TempType: String, CaseIterable {
 struct ContentView: View {
     @State private var myTemp: TempType = .celsius
     @State private var input: Double = 0.0
+    
+    // Computed property! 저장된 값 x, 어떤 값을 계산해서 돌려주는 넘
     var convertedOutput: Double {
         myTemp.convert(input)
     }
