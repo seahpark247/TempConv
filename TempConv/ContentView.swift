@@ -91,7 +91,7 @@ struct ContentView: View {
                     Section {
                         HStack {
                             Spacer()
-                            Image(systemName: "arrow.triangle.2.circlepath")
+                            Image(systemName: "arrow.down")
                             Spacer()
                         }
                     }
