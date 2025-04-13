@@ -7,74 +7,86 @@
 
 import SwiftUI
 
-
-enum TempType {
-    case celsius, fahrenheit
-}
-
-struct ContentView: View {
-    @State private var myTemp = "Celsius"
-    @State private var input = 0.0
-    @State private var output = 0.0
-    var tempColor: Color {
-        if myTemp == "Celsius" {
-            if input >= 34 {
-                return .red
-            } else if input >= 28 {
-                return .orange
-            } else if input >= 25 {
-                return .yellow
-            } else if input >= 20 {
-                return .green
-            } else if input >= 10 {
-                return .blue
-            } else {
-                return .gray
-            }
-        } else {
-            if input >= 93.20 {
-                return .red
-            } else if input >= 82.40 {
-                return .orange
-            } else if input >= 77 {
-                return .yellow
-            } else if input >= 68 {
-                return .green
-            } else if input >= 50 {
-                return .blue
-            } else {
-                return .gray
-            }
+enum TempType: String, CaseIterable {
+    case celsius = "Celsius"
+    case fahrenheit = "Fahrenheit"
+    
+    var symbol: String {
+        self == .celsius ? "°C" : "°F"
+    }
+    
+    var opposite: TempType {
+        self == .celsius ? .fahrenheit : .celsius
+    }
+    
+    func convert(_ value: Double) -> Double {
+        switch self {
+        case .celsius:
+            return (value * 9 / 5) + 32
+        case .fahrenheit:
+            return (value - 32) * 5 / 9
         }
     }
     
-    let tempTypes = ["Celsius", "Fahrenheit"]
+    func color(for value: Double) -> Color {
+        switch self {
+        case .celsius:
+            switch value {
+            case 34...: return .red
+            case 28..<34: return .orange
+            case 25..<28: return .yellow
+            case 20..<25: return .green
+            case 10..<20: return .blue
+            default: return .gray
+            }
+        case .fahrenheit:
+            switch value {
+            case 93.2...: return .red
+            case 82.4..<93.2: return .orange
+            case 77..<82.4: return .yellow
+            case 68..<77: return .green
+            case 50..<68: return .blue
+            default: return .gray
+            }
+        }
+    }
+}
+
+struct ContentView: View {
+    @State private var myTemp: TempType = .celsius
+    @State private var input: Double = 0.0
+    @State private var output: Double = 0.0
     
+    var tempColor: Color {
+        myTemp.color(for: input)
+    }
+
     var body: some View {
-        NavigationStack{
+        NavigationStack {
             ZStack {
-                Text("").frame(maxWidth: .infinity, maxHeight: .infinity).background(tempColor.gradient.opacity(0.3)).ignoresSafeArea()
+                Color.clear
+                    .background(tempColor.gradient.opacity(0.3))
+                    .ignoresSafeArea()
                 
                 Form {
                     Section {
-                        Picker("Select my temprature", selection: $myTemp) {
-                            ForEach(tempTypes, id: \.self) { Text($0)
+                        Picker("Select your temperature", selection: $myTemp) {
+                            ForEach(TempType.allCases, id: \.self) { type in
+                                Text(type.rawValue)
                             }
                         }
                         .pickerStyle(.segmented)
-                        .onChange(of: myTemp) {
-                            tempConvert()
-                        }
+                        .onChange(of: myTemp) { tempConvert() }
                     }
                     .padding(.top)
                     .listRowBackground(Color.clear)
                     
-                    Section(myTemp == "Celsius" ? "°C" : "°F") {
-                        TextField("Celsius", value: $input, format: .number)
-                            .onChange(of: input) {
-                                tempConvert()
-                            }
-                    }.multilineTextAlignment(.center)
+                    Section(myTemp.symbol) {
+                        TextField(myTemp.rawValue, value: $input, format: .number)
+                            .keyboardType(.decimalPad)
+                            .onChange(of: input) { tempConvert() }
+                            .multilineTextAlignment(.center)
+                    }
                     
                     Section {
                         HStack {
@@ -82,33 +94,25 @@ struct ContentView: View {
                             Image(systemName: "arrow.triangle.2.circlepath")
                             Spacer()
                         }
-                    }.listRowBackground(Color.clear)
-                    
-                    Section(myTemp == "Celsius" ? "°F" : "°C") {
-                        Text(String(format: "%.2f", output)).frame(maxWidth: .infinity, alignment: .center)
                     }
-                }.navigationTitle("TempConv")
+                    .listRowBackground(Color.clear)
+                    
+                    Section(myTemp.opposite.symbol) {
+                        Text(String(format: "%.2f", output))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
+                .navigationTitle("TempConv")
+                .scrollContentBackground(.hidden)
             }
-        }.scrollContentBackground(.hidden)
-    }
-    
-    func tempConvert() {
-        if myTemp == "Celsius" {
-            output = celsiusToFahrenheit()
-        } else {
-            output = fahrenheitToCelsius()
         }
     }
-    
-    func celsiusToFahrenheit() -> Double {
-        return (input * 9.0 / 5.0) + 32.0
+
+    func tempConvert() {
+        output = myTemp.convert(input)
     }
-    
-    func fahrenheitToCelsius() -> Double {
-        return (input - 32.0) * 5.0 / 9.0
-    }
-    
 }
+
 
 #Preview {
     ContentView()
