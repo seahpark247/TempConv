@@ -55,7 +55,9 @@ enum TempType: String, CaseIterable {
 struct ContentView: View {
     @State private var myTemp: TempType = .celsius
     @State private var input: Double = 0.0
-    @State private var output: Double = 0.0
+    var convertedOutput: Double {
+        myTemp.convert(input)
+    }
     
     var tempColor: Color {
         myTemp.color(input)
@@ -74,7 +76,6 @@ struct ContentView: View {
                             ForEach(TempType.allCases, id: \.self) { Text($0.rawValue) }
                         }
                         .pickerStyle(.segmented)
-                        .onChange(of: myTemp) { tempConvert() }
                     }
                     .padding(.top)
                     .listRowBackground(Color.clear)
@@ -82,7 +83,6 @@ struct ContentView: View {
                     Section(myTemp.symbol) {
                         TextField(myTemp.rawValue, value: $input, format: .number)
                             .keyboardType(.decimalPad)
-                            .onChange(of: input) { tempConvert() }
                             .multilineTextAlignment(.center)
                     }
                     
@@ -96,7 +96,7 @@ struct ContentView: View {
                     .listRowBackground(Color.clear)
                     
                     Section(myTemp.opposite.symbol) {
-                        Text(String(format: "%.2f", output))
+                        Text(String(format: "%.2f", convertedOutput))
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -106,9 +106,6 @@ struct ContentView: View {
         }
     }
 
-    func tempConvert() {
-        output = myTemp.convert(input)
-    }
 }
 
 
